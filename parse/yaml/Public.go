@@ -1,9 +1,8 @@
 package yaml
 
 import (
-	"com/stream/reader"
-	"com/stream/writer"
-
+	reader "gitlab.com/alvidir/util/stream/reader"
+	writer "gitlab.com/alvidir/util/stream/writer"
 	"gopkg.in/yaml.v2"
 )
 

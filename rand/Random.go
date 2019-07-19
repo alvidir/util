@@ -2,11 +2,11 @@ package rand
 
 import (
 	"math/rand"
-	"time"
+	time "gitlab.com/alvidir/util/time"
 )
 
-// Random genera un valor aleatori sense signe de 64 bits
+// Randomize genera un valor aleatori sense signe de 64 bits
 func Randomize() uint64 {
-	rand.Seed(time.Now().UnixNano())
+	rand.Seed(time.Unix())
 	return rand.Uint64()
 }

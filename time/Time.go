@@ -22,3 +22,9 @@ func CurrentTime() string {
 func DateTime() string {
 	return time.Now().Format("02-01-2006 15:04:05")
 }
+
+/* Unix retorna l'hora actual en UnixNano
+ */
+func Unix() int64 {
+	return time.Now().UnixNano()
+}
