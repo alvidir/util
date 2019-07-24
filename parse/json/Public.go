@@ -1,8 +1,8 @@
 package json
 
 import (
-	reader "gitlab.com/alvidir/util/stream/reader"
-	writer "gitlab.com/alvidir/util/stream/writer"
+	reader "github.com/alvidir/util/stream/reader"
+	writer "github.com/alvidir/util/stream/writer"
 	"encoding/json"
 )
 

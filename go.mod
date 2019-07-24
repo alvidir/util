@@ -1,4 +1,4 @@
-module gitlab.com/alvidir/util
+module github.com/alvidir/util
 
 go 1.12
 

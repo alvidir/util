@@ -2,7 +2,7 @@ package rand
 
 import (
 	"math/rand"
-	time "gitlab.com/alvidir/util/time"
+	time "github.com/alvidir/util/time"
 )
 
 // Randomize genera un valor aleatori sense signe de 64 bits
