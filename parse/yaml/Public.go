@@ -25,7 +25,7 @@ func Unmarshal(filepath string, manifest interface{}) (err error) {
  * de la interficie passada per parametre i l'enmagatzema al fitxer.
  * Si aquest no existeix: el crea.
  */
-func Marshal(filepath string, content *interface{}) (err error) {
+func Marshal(filepath string, content interface{}) (err error) {
 	var data []byte
 	if data, err = yaml.Marshal(content); err == nil {
 		//Si la conversió ha sigut satisfactoria

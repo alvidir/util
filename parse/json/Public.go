@@ -1,9 +1,10 @@
 package json
 
 import (
+	"encoding/json"
+
 	reader "github.com/alvidir/util/stream/reader"
 	writer "github.com/alvidir/util/stream/writer"
-	"encoding/json"
 )
 
 /* Unmarshal de fitxers
@@ -25,7 +26,7 @@ func Unmarshal(filepath string, stream interface{}) (err error) {
  * de la interficie passada per parametre i l'enmagatzema al fitxer.
  * Si aquest no existeix: el crea.
  */
-func Marshal(filepath string, content *interface{}) (err error) {
+func Marshal(filepath string, content interface{}) (err error) {
 	var data []byte
 	if data, err = json.Marshal(content); err == nil {
 		//Si la conversió ha sigut satisfactoria
