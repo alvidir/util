@@ -6,10 +6,7 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-/* Unmarshal de fitxers
- * Donat el path d'un fitxer existent, en fa la reversió yaml
- * sobre la interficie passada per parametre.
- */
+// Unmarshal decodes an yaml definition to interface object
 func Unmarshal(filepath string, manifest interface{}) (err error) {
 	var content []byte
 	if content, err = reader.Read(filepath); err == nil {
@@ -20,11 +17,7 @@ func Unmarshal(filepath string, manifest interface{}) (err error) {
 	return
 }
 
-/* Marshal de fitxers
- * Donat el path d'un fitxer existent o no, en fa la conversió json
- * de la interficie passada per parametre i l'enmagatzema al fitxer.
- * Si aquest no existeix: el crea.
- */
+// Marshal encode an interface object to corresponding yaml definition
 func Marshal(filepath string, content interface{}) (err error) {
 	var data []byte
 	if data, err = yaml.Marshal(content); err == nil {
