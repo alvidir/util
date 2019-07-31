@@ -1,7 +1,7 @@
 package operator
 
 type function func(...interface{}) error
-type procedure func(...interface{})
+type procedure func()
 
 // Ternary operates as an ternary conditional operator between
 // two actions.
