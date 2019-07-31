@@ -1,10 +1,11 @@
 package operator
 
-type procedure func(...interface{}) error
+type function func(...interface{}) error
+type procedure func(...interface{})
 
 // Ternary operates as an ternary conditional operator between
 // two actions.
-func Ternary(cond bool, doif procedure, ifnot procedure) error {
+func Ternary(cond bool, doif function, ifnot function) error {
 	if cond {
 		return doif()
 	}
@@ -12,7 +13,7 @@ func Ternary(cond bool, doif procedure, ifnot procedure) error {
 	return ifnot()
 }
 
-// Switch switches action to gorutine if cond is true; otherwise
+// Switch switches an action to gorutine if cond is true; otherwise
 // keeps in the same fiber
 func Switch(cond bool, action procedure) {
 	if cond {
