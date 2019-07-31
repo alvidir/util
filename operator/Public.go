@@ -10,9 +10,9 @@ func Ternary(cond bool, runmeiftrue func(), runmeifalse func()) {
 	}
 }
 
-// Switchf switches an action to gorutine if cond is true; otherwise
+// Switch switches an action to gorutine if cond is true; otherwise
 // keeps in the same fiber
-func Switchf(cond bool, action func()) {
+func Switch(cond bool, action func()) {
 	if cond {
 		go action()
 	} else {
