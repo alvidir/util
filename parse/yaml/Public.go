@@ -12,5 +12,5 @@ func Unmarshal(filepath string, manifest interface{}) (err error) {
 
 // Marshal encode an interface object to corresponding yaml definition
 func Marshal(filepath string, content interface{}) (err error) {
-	return parse.Marshal(filepath, content, yaml.Marshal)
+	return parse.MarshalStrategy(filepath, content, yaml.Marshal)
 }
