@@ -12,12 +12,6 @@ func random() *rand.Rand {
 	return New(seed)
 }
 
-// New builds a brand new randomizer for a given seed
-func New(seed int64) *rand.Rand {
-	source := rand.NewSource(seed)
-	return rand.New(source)
-}
-
 // Randomize gives a pseudo-random unsigned value 64 bits lenght
 func Randomize() uint64 {
 	return random().Uint64()
