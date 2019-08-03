@@ -25,7 +25,9 @@ func Randomize() uint64 {
 
 // Entropy returns true or false pseudo-ramdonly under the
 // given entropy
-func Entropy(prob float64) bool {
-	norma := operator.Normalize(prob)
-	return random().Float64() <= norma
+func Entropy(frac float64) bool {
+	limit := operator.Normalize(frac)
+	cursor := random().Float64()
+
+	return cursor <= limit
 }
