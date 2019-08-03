@@ -18,13 +18,13 @@ func New(seed int64) *rand.Rand {
 	return rand.New(source)
 }
 
-// Randomize gives a pseudo-ramdom unsigned value 64 bits lenght
+// Randomize gives a pseudo-random unsigned value 64 bits lenght
 func Randomize() uint64 {
 	return random().Uint64()
 }
 
-// Entropy returns true or false pseudo-ramdonly under the
-// given entropy
+// Entropy returns true or false pseudo-randomly under the
+// given float as probability of true
 func Entropy(frac float64) bool {
 	limit := operator.Normalize(frac)
 	cursor := random().Float64()
