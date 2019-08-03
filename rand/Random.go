@@ -7,21 +7,25 @@ import (
 	time "github.com/alvidir/util/time"
 )
 
-// Random builds a brand new randomizer
-func Random() *rand.Rand {
+func random() *rand.Rand {
 	seed := time.Unix()
+	return New(seed)
+}
+
+// New builds a brand new randomizer for a given seed
+func New(seed int64) *rand.Rand {
 	source := rand.NewSource(seed)
 	return rand.New(source)
 }
 
 // Randomize gives a pseudo-ramdom unsigned value 64 bits lenght
 func Randomize() uint64 {
-	return Random().Uint64()
+	return random().Uint64()
 }
 
-// Probability returns true or false pseudo-ramdonly under the
-// given probability
-func Probability(prob float64) bool {
+// Entropy returns true or false pseudo-ramdonly under the
+// given entropy
+func Entropy(prob float64) bool {
 	norma := operator.Normalize(prob)
-	return Random().Float64() <= norma
+	return random().Float64() <= norma
 }
