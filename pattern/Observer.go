@@ -7,8 +7,8 @@ type Observer interface {
 
 // A Subject represents an object that's being observed by an Observer
 type Subject interface {
-	AddObserver(*Observer)
-	RemoveObserver(*Observer)
+	AddObserver(Observer)
+	RemoveObserver(Observer)
 
 	Broadcast(interface{})
 }
