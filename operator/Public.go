@@ -15,10 +15,10 @@ func Switch(cond bool, action func()) {
 }
 
 // Normalize change the state of a float to range [0.0, 1.0)
-func Normalize(in float64) float64 {
-	if f64 := math.Abs(in); f64 > 1 {
-		_, in = math.Modf(f64)
+func Normalize(f64 float64) float64 {
+	if f64 = math.Abs(f64); f64 > 1 {
+		_, f64 = math.Modf(f64)
 	}
 
-	return in
+	return f64
 }
