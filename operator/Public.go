@@ -2,6 +2,7 @@ package operator
 
 import (
 	"math"
+	"reflect"
 )
 
 // Abs returns the absolut value for a given int
@@ -11,6 +12,11 @@ func Abs(n int) int {
 	}
 
 	return n
+}
+
+// Clone clones an object
+func Clone(in interface{}) interface{} {
+	return reflect.Indirect(reflect.ValueOf(in)).Interface()
 }
 
 // Switch switches an action to gorutine if cond is true; otherwise
