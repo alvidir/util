@@ -15,10 +15,10 @@ func Abs(n int) int {
 }
 
 // Clone clones an object
-func Clone(in interface{}) interface{} {
-	reflected := reflect.ValueOf(in)
-	indirect := reflect.Indirect(reflected)
-	return indirect.Interface()
+func Clone(original interface{}) interface{} {
+	clone := reflect.ValueOf(original)
+	clone = reflect.Indirect(clone)
+	return clone.Interface()
 }
 
 // Switch switches an action to gorutine if cond is true; otherwise
