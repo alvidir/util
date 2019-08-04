@@ -50,13 +50,13 @@ func Uint64() uint64 {
 // Entropy returns true or false pseudo-randomly under the
 // given float as probability of true
 func Entropy(frac float64) bool {
-	switch bounds := operator.Normalize(frac); {
-	case bounds == 0.:
+	switch limit := operator.Normalize(frac); {
+	case limit == 0.:
 		return false
-	case bounds == 1.:
+	case limit == 1.:
 		return true
 	default:
 		cursor := random().Float64()
-		return cursor <= bounds
+		return cursor <= limit
 	}
 }
