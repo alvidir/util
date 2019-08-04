@@ -8,9 +8,9 @@ import (
 func Abs(n int) int {
 	if n < 0 {
 		return -n
-	} else {
-		return n
 	}
+
+	return n
 }
 
 // Switch switches an action to gorutine if cond is true; otherwise
