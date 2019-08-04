@@ -12,7 +12,12 @@ func random() *rand.Rand {
 	return New(seed)
 }
 
-// Uint gives a pseudo-random unsigned value 64 bits lenght
+// Int gives a pseudo-random value
+func Int() int {
+	return random().Int()
+}
+
+// Uint gives a pseudo-random unsigned value
 func Uint() uint {
 	return uint(random().Int())
 }
