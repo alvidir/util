@@ -12,6 +12,16 @@ func random() *rand.Rand {
 	return New(seed)
 }
 
+// Range returns a pseudo-random value between [0,n]
+func Range(n int) int {
+	if n < 0 {
+		// absolut value is needed
+		n *= -1
+	}
+
+	return random().Intn(n + 1)
+}
+
 // Int gives a pseudo-random value
 func Int() int {
 	return random().Int()
@@ -40,8 +50,13 @@ func Uint64() uint64 {
 // Entropy returns true or false pseudo-randomly under the
 // given float as probability of true
 func Entropy(frac float64) bool {
-	bounds := operator.Normalize(frac)
-	cursor := random().Float64()
-
-	return cursor <= bounds
+	switch bounds := operator.Normalize(frac); {
+	case bounds == 0.:
+		return false
+	case bounds == 1.:
+		return true
+	default:
+		cursor := random().Float64()
+		return cursor <= bounds
+	}
 }
