@@ -16,7 +16,9 @@ func Abs(n int) int {
 
 // Clone clones an object
 func Clone(in interface{}) interface{} {
-	return reflect.Indirect(reflect.ValueOf(in)).Interface()
+	reflected := reflect.ValueOf(in)
+	indirect := reflect.Indirect(reflected)
+	return indirect.Interface()
 }
 
 // Switch switches an action to gorutine if cond is true; otherwise
