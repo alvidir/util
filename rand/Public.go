@@ -1,16 +1,8 @@
 package rand
 
 import (
-	"math/rand"
-
 	operator "github.com/alvidir/util/operator"
-	time "github.com/alvidir/util/time"
 )
-
-func random() *rand.Rand {
-	seed := time.Unix()
-	return New(seed)
-}
 
 // Range returns a pseudo-random value between [0,n]
 func Range(n int) int {
@@ -19,22 +11,22 @@ func Range(n int) int {
 		n *= -1
 	}
 
-	return random().Intn(n + 1)
+	return Random().Intn(n + 1)
 }
 
 // Int gives a pseudo-random value
 func Int() int {
-	return random().Int()
+	return Random().Int()
 }
 
 // Uint gives a pseudo-random unsigned value
 func Uint() uint {
-	return uint(random().Int())
+	return uint(Random().Int())
 }
 
 // Int64 gives a pseudo-random value 64 bits lenght
 func Int64() int64 {
-	unsig := random().Int63()
+	unsig := Random().Int63()
 	if Entropy(0.5) { // fifty-fifty to become negative
 		unsig *= -1
 	}
@@ -44,7 +36,7 @@ func Int64() int64 {
 
 // Uint64 gives a pseudo-random unsigned value 64 bits lenght
 func Uint64() uint64 {
-	return random().Uint64()
+	return Random().Uint64()
 }
 
 // Entropy returns true or false pseudo-randomly under the
@@ -56,7 +48,7 @@ func Entropy(frac float64) bool {
 	case limit == 1.:
 		return true
 	default:
-		cursor := random().Float64()
+		cursor := Random().Float64()
 		return cursor <= limit
 	}
 }
