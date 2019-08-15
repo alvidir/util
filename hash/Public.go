@@ -12,5 +12,5 @@ func FormatStr256(args ...string) (hash string) {
 	argot := []byte(hash)
 	forma := sha256.Sum256(argot)
 
-	return fmt.Sprintf("%x", forma)
+	return fmt.Sprintf("%X", forma)
 }
