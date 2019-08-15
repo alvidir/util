@@ -6,8 +6,7 @@ import "fmt"
 // other maps of interfaces, navigables as well
 func Nav(content map[interface{}]interface{}, args ...interface{}) (value interface{}, err error) {
 	if len(args) == 0 {
-		value = content
-		return
+		return content, nil
 	}
 
 	if content == nil {
@@ -18,7 +17,7 @@ func Nav(content map[interface{}]interface{}, args ...interface{}) (value interf
 	key, exists := args[0], false
 	if value, exists = content[key]; !exists {
 		err = fmt.Errorf("Cannot get resource for provided key %v", key)
-		return
+		return content, err
 	}
 
 	if parse, ok := value.(map[interface{}]interface{}); ok {
