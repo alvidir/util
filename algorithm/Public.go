@@ -2,8 +2,8 @@ package algorithm
 
 import "fmt"
 
-// Nav gets recursively a deep value inside a map, considering the value for each key in args is already
-// an other map of interfaces, navigable as well
+// Nav gets recursively a deep value inside a map, considering the values for each key in args are already
+// other maps of interfaces, navigables as well
 func Nav(content map[interface{}]interface{}, args ...interface{}) (value interface{}, err error) {
 	if len(args) == 0 {
 		value = content
