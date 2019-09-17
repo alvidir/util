@@ -12,7 +12,7 @@ func Switch(cond bool, action func()) {
 	}
 }
 
-// ClearMap erase all content in map m
+// ClearMap erase all content in the sync.Map m
 func ClearMap(m *sync.Map) {
 	m.Range(func(key interface{}, value interface{}) bool {
 		m.Delete(key)
