@@ -1,6 +1,9 @@
 package algorithm
 
-import "fmt"
+import (
+	"fmt"
+	"strconv"
+)
 
 // Nav gets recursively a deep value inside a map, considering the values for each key in args are already
 // other maps of interfaces, navigables as well
@@ -26,5 +29,12 @@ func Nav(content map[interface{}]interface{}, args ...interface{}) (value interf
 		err = fmt.Errorf("Cannot complete navigability, %v is not a map", value)
 	}
 
+	return
+}
+
+// Address return the pointer address as an int64
+func Address(i interface{}) (ival int64) {
+	iparse := fmt.Sprintf("%x", i)
+	ival, _ = strconv.ParseInt(iparse, 16, 64)
 	return
 }
