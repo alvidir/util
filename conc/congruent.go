@@ -1,5 +1,7 @@
 package conc
 
+import "sync"
+
 type congruent struct {
 	lockers []sync.Locker
 }
