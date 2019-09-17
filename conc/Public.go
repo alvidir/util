@@ -7,18 +7,24 @@ import (
 	algr "github.com/alvidir/util/algorithm"
 )
 
-// Switch switches an action to gorutine if cond is true; otherwise
-// keeps in the same fiber
-func Switch(cond bool, action func()) {
-	if cond {
-		go action()
-	} else {
-		action()
+type congruent struct {
+	lockers []sync.Locker
+}
+
+func (congr *congruent) Lock() {
+	for _, locker := range congr.lockers {
+		locker.Lock()
 	}
 }
 
-// CongruentLocking locks a set of lockers in a congruent order
-func CongruentLocking(lockers ...sync.Locker) {
+func (congr *congruent) Unlock() {
+	for _, locker := range congr.lockers {
+		locker.Unlock()
+	}
+}
+
+// Congruent returns a new congruent locker
+func Congruent(lockers ...sync.Locker) (lockr sync.Locker) {
 	if lockers == nil || len(lockers) == 0 {
 		return
 	}
@@ -27,8 +33,16 @@ func CongruentLocking(lockers ...sync.Locker) {
 		return algr.Address(lockers[i]) < algr.Address(lockers[i])
 	})
 
-	for _, locker := range lockers {
-		locker.Lock()
+	return &congruent{lockers: lockers}
+}
+
+// Switch switches an action to gorutine if cond is true; otherwise
+// keeps in the same fiber
+func Switch(cond bool, action func()) {
+	if cond {
+		go action()
+	} else {
+		action()
 	}
 }
 
