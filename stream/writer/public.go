@@ -6,10 +6,7 @@ import (
 	"os"
 )
 
-/* Canal d'escriptura
- * Proporciona un canal obert d'escriptura per al fitxer ubicat
- * al path indicat.
- */
+// WriteStream returns a io.Writer for a given path
 func WriteStream(rute string, build bool, append bool) (io.Writer, error) {
 	flags := os.O_WRONLY
 	if build { // flag de creació del fitxer si no existeix
@@ -25,10 +22,7 @@ func WriteStream(rute string, build bool, append bool) (io.Writer, error) {
 	return os.OpenFile(rute, flags, 0644)
 }
 
-/* Escriptor de fixers
- * S'encarrega d'escriure al fitxer indicat pel path aquelles
- * dades enmagatzemades a l'array de bytes passat per parametre.
- */
+// Write writes some data in to given path
 func Write(filepath string, content []byte, append bool, build bool) (err error) {
 	if _, err := os.Stat(filepath); err == nil || build {
 		//Si el fitxer existeix, o es pretén crear-lo, procedeix l'escriptura
