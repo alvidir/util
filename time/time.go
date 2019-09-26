@@ -2,29 +2,22 @@ package time
 
 import "time"
 
-/* CurrentDate proporciona la data actual.
- * El format de la data és: dd-mm-aaaa
- */
+// CurrentDate returns current date
 func CurrentDate() string {
 	return time.Now().Format("02-01-2006")
 }
 
-/* CurrentTime proporciona l'hora actual.
- * El format de l'hora és: hh:mm:ss
- */
+// CurrentTime returns current time
 func CurrentTime() string {
 	return time.Now().Format("15:04:05")
 }
 
-/* DateTime proporciona la data i hora actuals.
- * El format de la date-time és: dd-mm-aaa hh:mm:ss
- */
+// DateTime returns current date-time
 func DateTime() string {
 	return time.Now().Format("02-01-2006 15:04:05")
 }
 
-/* Unix retorna l'hora actual en UnixNano
- */
+// Unix returns current time in UnixNano format
 func Unix() int64 {
 	return time.Now().UnixNano()
 }
