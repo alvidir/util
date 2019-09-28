@@ -1,4 +1,4 @@
-package struct
+package container
 
 import (
 	"fmt"
