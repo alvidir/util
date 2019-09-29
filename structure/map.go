@@ -9,7 +9,7 @@ type Map map[interface{}]interface{}
 
 // Nav gets recursively a deep value inside a map, considering the values for each key in args are already
 // other maps of interfaces, navigables as well
-func (mapp Map) Nav(args ...interface{}) (value interface{}, err error) {
+func (mapp Map) Nav(args []string) (value interface{}, err error) {
 	if mapp == nil {
 		err = fmt.Errorf("Cannot navigate the current content map %v", mapp)
 		return
