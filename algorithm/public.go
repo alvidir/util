@@ -23,7 +23,7 @@ func Nav(mapp map[interface{}]interface{}, args []string) (value interface{}, er
 	if parse, ok := value.(map[interface{}]interface{}); ok {
 		value, err = Nav(parse, args[1:])
 	} else if len(args) > 1 {
-		err = fmt.Errorf("Cannot complete navigability for key = %v, %v is not a map", args[0], value)
+		err = fmt.Errorf("Cannot complete navigability for key %v, %v is not a map", args[0], value)
 	}
 
 	return
