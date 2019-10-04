@@ -5,14 +5,8 @@ import (
 	"github.com/alvidir/util/stream/writer"
 )
 
-type unmarshal func([]byte, interface{}) error
-type marshal func(interface{}) ([]byte, error)
-
-// An Encoder represents an object able to be parsed
-type Encoder interface {
-	Unmarshal([]byte, interface{}) error
-	Marshal(interface{}) ([]byte, error)
-}
+type unmarshal = func([]byte, interface{}) error
+type marshal = func(interface{}) ([]byte, error)
 
 // UnmarshalStrategy decodes an encoded definition to interface object
 func UnmarshalStrategy(path string, stream interface{}, parser unmarshal) (err error) {
