@@ -7,10 +7,12 @@ import (
 
 // Unmarshal decodes an yaml definition to interface object
 func Unmarshal(filepath string, manifest interface{}) (err error) {
-	return parse.UnmarshalStrategy(filepath, manifest, yaml.Unmarshal)
+	var marshal parse.Unmarshal = yaml.Unmarshal
+	return marshal.UnmarshalStrategy(filepath, manifest)
 }
 
 // Marshal encode an interface object to corresponding yaml definition
 func Marshal(filepath string, content interface{}) (err error) {
-	return parse.MarshalStrategy(filepath, content, yaml.Marshal)
+	var marshal parse.Marshal = yaml.Marshal
+	return marshal.MarshalStrategy(filepath, content)
 }
