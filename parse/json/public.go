@@ -3,17 +3,17 @@ package json
 import (
 	"encoding/json"
 
-	parse "github.com/alvidir/util/parse"
+	coder "github.com/alvidir/util/parse/encoder"
 )
 
 // Unmarshal decodes an json definition to interface object
 func Unmarshal(filepath string, manifest interface{}) (err error) {
-	var marshal parse.Unmarshal = json.Unmarshal
-	return marshal.UnmarshalStrategy(filepath, manifest)
+	var marshal coder.Unmarshal = json.Unmarshal
+	return marshal.Path(filepath, manifest)
 }
 
 // Marshal encode an interface object to corresponding json definition
 func Marshal(filepath string, content interface{}) (err error) {
-	var marshal parse.Marshal = json.Marshal
-	return marshal.MarshalStrategy(filepath, content)
+	var marshal coder.Marshal = json.Marshal
+	return marshal.Path(filepath, content)
 }

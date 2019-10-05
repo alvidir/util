@@ -1,4 +1,4 @@
-package parse
+package encoder
 
 // Encoder represents a bilateral marshaler
 type Encoder interface {
