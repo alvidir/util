@@ -1,4 +1,4 @@
-package encoder
+package parse
 
 import (
 	"github.com/alvidir/util/stream/reader"
