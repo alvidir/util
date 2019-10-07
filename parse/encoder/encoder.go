@@ -1,22 +1,19 @@
 package encoder
 
-// An Encoder represents a set of de/encoder for an specific format
-type Encoder struct {
-	encode Marshal
-	decode Unmarshal
+type parser struct {
+	marshal   Marshal
+	unmarshal Unmarshal
 }
 
-// Marshal provides data marshaler
-func (encoder *Encoder) Marshal() Marshal {
-	return encoder.encode
+func (parse *parser) Marshal() Marshal {
+	return parse.marshal
 }
 
-// Unmarshal provides data unmarshaler
-func (encoder *Encoder) Unmarshal() Unmarshal {
-	return encoder.decode
+func (parse *parser) Unmarshal() Unmarshal {
+	return parse.unmarshal
 }
 
 // New builds a new Encoder
-func New(encoder Marshal, decoder Unmarshal) *Encoder {
-	return &Encoder{encode: encoder, decode: decoder}
+func New(encoder Marshal, decoder Unmarshal) Encoder {
+	return &parser{marshal: encoder, unmarshal: decoder}
 }
