@@ -19,6 +19,6 @@ func Marshal(filepath string, content interface{}) (err error) {
 }
 
 // Encoder builds a new encoder for json marshaling
-func Encoder() *code.Encoder {
+func Encoder() code.Encoder {
 	return code.New(json.Marshal, json.Unmarshal)
 }
