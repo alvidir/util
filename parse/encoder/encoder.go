@@ -1,19 +1,19 @@
 package encoder
 
-type ctrlEncoder struct {
+type encoder struct {
 	marshal   Marshal
 	unmarshal Unmarshal
 }
 
-func (parse *ctrlEncoder) Marshal() Marshal {
+func (parse *encoder) Marshal() Marshal {
 	return parse.marshal
 }
 
-func (parse *ctrlEncoder) Unmarshal() Unmarshal {
+func (parse *encoder) Unmarshal() Unmarshal {
 	return parse.unmarshal
 }
 
 // New builds a new Encoder
-func New(encoder Marshal, decoder Unmarshal) Encoder {
-	return &ctrlEncoder{marshal: encoder, unmarshal: decoder}
+func New(marshal Marshal, unmarshal Unmarshal) Encoder {
+	return &encoder{marshal: marshal, unmarshal: unmarshal}
 }
