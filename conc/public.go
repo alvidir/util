@@ -2,7 +2,6 @@ package conc
 
 import (
 	"os"
-	"sync"
 )
 
 // Switch switches an action to gorutine and returns the new process pid if cond is true;
@@ -20,12 +19,4 @@ func Switch(cond bool, action func()) int {
 	}(pid)
 
 	return <-pid
-}
-
-// ClearMap erase all content in the sync.Map m
-func ClearMap(m *sync.Map) {
-	m.Range(func(key interface{}, value interface{}) bool {
-		m.Delete(key)
-		return true
-	})
 }
