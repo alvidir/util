@@ -1,4 +1,4 @@
-package encoder
+package adapter
 
 import "github.com/alvidir/util/stream/writer"
 
