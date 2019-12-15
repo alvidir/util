@@ -2,6 +2,7 @@ package conc
 
 import (
 	"os"
+	"sync"
 )
 
 // Switch switches an action to gorutine and returns the new process pid if cond is true;
@@ -19,4 +20,10 @@ func Switch(cond bool, action func()) int {
 	}(pid)
 
 	return <-pid
+}
+
+// Coherence ensures the same lock/unlock order for a set of lockers, being lock == true if,
+// and only if, the function to execute for each locker is Lock(), otherwise it's Unlock().
+func Coherence(lock bool, lockers ...sync.Locker) {
+
 }
