@@ -27,17 +27,3 @@ func Switch(cond bool, action func()) int {
 func Coherence(lock bool, lockers ...sync.Locker) {
 
 }
-
-// CloneMap returns a copy of a provided sync.Map into a map[interface{}]interface{}
-func CloneMap(in *sync.Map) (out map[interface{}]interface{}) {
-	if in == nil {
-		return
-	}
-
-	in.Range(func(key interface{}, value interface{}) bool {
-		out[key] = value
-		return true
-	})
-
-	return out
-}
