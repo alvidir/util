@@ -11,5 +11,6 @@ func Try(todo func()) (err error) {
 		}
 	}()
 
+	todo()
 	return
 }
