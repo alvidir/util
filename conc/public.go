@@ -31,7 +31,9 @@ func Coherence(lock bool, lockers ...sync.Locker) {
 	})
 
 	for _, locker := range lockers[:] {
-		if lock {
+		if locker == nil {
+			continue
+		} else if lock {
 			locker.Lock()
 		} else {
 			locker.Unlock()
