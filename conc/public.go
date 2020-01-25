@@ -8,21 +8,17 @@ import (
 	method "github.com/alvidir/util/method"
 )
 
-// Switch switches an action to gorutine and returns the new process pid if cond is true;
-// otherwise keeps in the same fiber
-func Switch(cond bool, action func()) int {
-	if !cond {
+// Fork creates a new goroutine where to execute a provided action and returns the pid of the
+// new process.
+func Fork(action func()) int {
+	in := make(chan int)
+	go func(out chan<- int) {
+		out <- os.Getpid()
+		close(out)
 		action()
-		return 0
-	}
+	}(in)
 
-	pid := make(chan int)
-	go func(chann chan<- int) {
-		pid <- os.Getpid()
-		action()
-	}(pid)
-
-	return <-pid
+	return <-in
 }
 
 // Coherence ensures the same lock/unlock order for a set of lockers, being lock == true if,
@@ -43,8 +39,8 @@ func Coherence(lock bool, lockers ...sync.Locker) {
 	}
 }
 
-// Merge converts a list of channels to a single channel
-// For more information about Merge function go to https://blog.golang.org/pipelines
+// Merge converts a list of channels to a single channel.
+// For more information about Merge function go to https://blog.golang.org/pipelines.
 func Merge(done <-chan struct{}, cs ...<-chan interface{}) <-chan interface{} {
 	var wg sync.WaitGroup
 	out := make(chan interface{})
