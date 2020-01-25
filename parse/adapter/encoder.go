@@ -1,19 +1,19 @@
 package adapter
 
 type adapter struct {
-	marshal   Marshal
-	unmarshal Unmarshal
+	X_Marshal   Marshal
+	X_Unmarshal Unmarshal
 }
 
 func (parse *adapter) Marshal() Marshal {
-	return parse.marshal
+	return parse.X_Marshal
 }
 
 func (parse *adapter) Unmarshal() Unmarshal {
-	return parse.unmarshal
+	return parse.X_Unmarshal
 }
 
 // New builds a new Encoder
 func New(marshal Marshal, unmarshal Unmarshal) Adapter {
-	return &adapter{marshal: marshal, unmarshal: unmarshal}
+	return &adapter{X_Marshal: marshal, X_Unmarshal: unmarshal}
 }
