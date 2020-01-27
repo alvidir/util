@@ -8,9 +8,9 @@ import (
 	method "github.com/alvidir/util/method"
 )
 
-// Fork creates a new goroutine where to execute a provided action and returns the pid of the
-// new process.
-func Fork(action func()) int {
+// Spawn creates a new goroutine where to execute a provided action and returns the pid of the
+// generated process.
+func Spawn(action func()) int {
 	in := make(chan int)
 	go func(out chan<- int) {
 		out <- os.Getpid()
