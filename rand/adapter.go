@@ -6,12 +6,12 @@ import (
 	operator "github.com/alvidir/util/operator"
 )
 
-type Random struct {
+type Adapter struct {
 	*rand.Rand
 }
 
 // Range returns a pseudo-random value between [0,n]
-func (rand *Random) Range(n int) int {
+func (rand *Adapter) Range(n int) int {
 	if n < 0 {
 		// absolut value is needed
 		n *= -1
@@ -21,12 +21,12 @@ func (rand *Random) Range(n int) int {
 }
 
 // Uint gives a pseudo-random unsigned value
-func (rand *Random) Uint() uint {
+func (rand *Adapter) Uint() uint {
 	return uint(rand.Int())
 }
 
 // Int64 gives a pseudo-random value 64 bits lenght
-func (rand *Random) Int64() int64 {
+func (rand *Adapter) Int64() int64 {
 	unsig := rand.Int63()
 	if rand.Entropy(0.5) { // fifty-fifty to become negative
 		unsig *= -1
@@ -37,7 +37,7 @@ func (rand *Random) Int64() int64 {
 
 // Entropy returns true or false pseudo-randomly under the
 // given float as probability of true
-func (rand *Random) Entropy(frac float64) bool {
+func (rand *Adapter) Entropy(frac float64) bool {
 	switch limit := operator.Normalize(frac); {
 	case limit == 0.:
 		return false
