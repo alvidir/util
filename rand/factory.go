@@ -6,13 +6,13 @@ import (
 )
 
 // New builds a brand new randomizer for a given seed
-func New(seed int64) *rand.Rand {
+func New(seed int64) *Adapter {
 	source := rand.NewSource(seed)
-	return rand.New(source)
+	return &Adapter{rand.New(source)}
 }
 
-// Random build a brand new randomizer with creation time as seed
-func Random() *rand.Rand {
-	seed := time.Now().Unix()
+// Start build a brand new randomizer with creation time as seed
+func Start() *Adapter {
+	seed := time.Now().UnixNano()
 	return New(seed)
 }

@@ -21,9 +21,8 @@ func Fork(action func()) int {
 	return <-in
 }
 
-// Coherence ensures the same lock/unlock order for a set of lockers, being lock == true if,
-// and only if, the function to execute for each locker is Lock(), otherwise it's Unlock().
-func Coherence(lock bool, lockers ...sync.Locker) {
+// CoherentLock ensures the same locking order for a set of lockers
+func CoherentLock(lockers ...sync.Locker) {
 	sort.Slice(lockers[:], func(i, j int) bool {
 		i_ptr, _ := method.ToUintptr(lockers[i])
 		j_ptr, _ := method.ToUintptr(lockers[j])
@@ -33,11 +32,26 @@ func Coherence(lock bool, lockers ...sync.Locker) {
 	for _, locker := range lockers[:] {
 		if locker == nil {
 			continue
-		} else if lock {
-			locker.Lock()
-		} else {
-			locker.Unlock()
 		}
+
+		locker.Lock()
+	}
+}
+
+// CoherentUnlock ensures the same unlocking order for a set of lockers
+func CoherentUnlock(lockers ...sync.Locker) {
+	sort.Slice(lockers[:], func(i, j int) bool {
+		i_ptr, _ := method.ToUintptr(lockers[i])
+		j_ptr, _ := method.ToUintptr(lockers[j])
+		return i_ptr < j_ptr
+	})
+
+	for _, locker := range lockers[:] {
+		if locker == nil {
+			continue
+		}
+
+		locker.Unlock()
 	}
 }
 
@@ -72,5 +86,6 @@ func Merge(done <-chan struct{}, cs ...<-chan interface{}) <-chan interface{} {
 		wg.Wait()
 		close(out)
 	}()
+
 	return out
 }

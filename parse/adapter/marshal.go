@@ -2,13 +2,22 @@ package adapter
 
 import "github.com/alvidir/util/stream/writer"
 
-// Marshal represents a encoder
 type Marshal func(interface{}) ([]byte, error)
 
+// MarshalAdapter represents a encoder
+type MarshalAdapter struct {
+	Fx Marshal
+}
+
+// Marshal encode an interface object into an array of bytes
+func (adapter *MarshalAdapter) Marshal(i interface{}) ([]byte, error) {
+	return adapter.Fx(i)
+}
+
 // Path encode an interface object to corresponding path
-func (marshal Marshal) Path(path string, content interface{}) (err error) {
+func (adapter *MarshalAdapter) Path(path string, content interface{}) (err error) {
 	var data []byte
-	if data, err = marshal(content); err == nil {
+	if data, err = adapter.Fx(content); err == nil {
 		err = writer.Write(path, data, false, true)
 	}
 

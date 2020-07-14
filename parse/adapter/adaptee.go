@@ -1,14 +1,14 @@
 package adapter
 
 type Adaptee struct {
-	X_Marshal   Marshal
-	X_Unmarshal Unmarshal
+	X_Marshal   Marshaler
+	X_Unmarshal Unmarshaler
 }
 
-func (parse *Adaptee) Marshal() Marshal {
+func (parse *Adaptee) Encoder() Marshaler {
 	return parse.X_Marshal
 }
 
-func (parse *Adaptee) Unmarshal() Unmarshal {
+func (parse *Adaptee) Decoder() Unmarshaler {
 	return parse.X_Unmarshal
 }

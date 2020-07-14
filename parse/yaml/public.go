@@ -7,17 +7,19 @@ import (
 
 // Unmarshal decodes an yaml definition to interface object
 func Unmarshal(filepath string, manifest interface{}) (err error) {
-	var marshal adapt.Unmarshal = yaml.Unmarshal
-	return marshal.Path(filepath, manifest)
+	unmarshal := adapt.NewUnmarshaler(yaml.Unmarshal)
+	return unmarshal.Path(filepath, manifest)
 }
 
 // Marshal encode an interface object to corresponding yaml definition
 func Marshal(filepath string, content interface{}) (err error) {
-	var marshal adapt.Marshal = yaml.Marshal
+	marshal := adapt.NewMarshaler(yaml.Marshal)
 	return marshal.Path(filepath, content)
 }
 
 // Adapter builds a new adapter for yaml marshaling
 func Adapter() adapt.Adapter {
-	return adapt.New(yaml.Marshal, yaml.Unmarshal)
+	marshal := adapt.NewMarshaler(yaml.Marshal)
+	unmarshal := adapt.NewUnmarshaler(yaml.Unmarshal)
+	return adapt.NewEncoder(marshal, unmarshal)
 }
