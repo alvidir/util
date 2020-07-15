@@ -19,7 +19,7 @@ func Marshal(filepath string, content interface{}) (err error) {
 
 // Adapter builds a new adapter for yaml marshaling
 func Adapter() adapt.Adapter {
-	marshal := adapt.NewMarshaler(yaml.Marshal)
-	unmarshal := adapt.NewUnmarshaler(yaml.Unmarshal)
+	marshal := *adapt.NewMarshaler(yaml.Marshal)
+	unmarshal := *adapt.NewUnmarshaler(yaml.Unmarshal)
 	return adapt.NewEncoder(marshal, unmarshal)
 }

@@ -20,7 +20,7 @@ func Marshal(filepath string, content interface{}) (err error) {
 
 // Adapter builds a new adapter for json marshaling
 func Adapter() adapt.Adapter {
-	marshal := adapt.NewMarshaler(json.Marshal)
-	unmarshal := adapt.NewUnmarshaler(json.Unmarshal)
+	marshal := *adapt.NewMarshaler(json.Marshal)
+	unmarshal := *adapt.NewUnmarshaler(json.Unmarshal)
 	return adapt.NewEncoder(marshal, unmarshal)
 }
