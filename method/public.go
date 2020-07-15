@@ -28,5 +28,6 @@ func ToUintptr(v interface{}) (ptr uintptr, err error) {
 		return
 	}
 
-	return uintptr(pseudo), nil
+	ptr = uintptr(pseudo)
+	return
 }
