@@ -2,13 +2,11 @@ package sequence
 
 import (
 	"sync"
-	"sync/atomic"
 )
 
 type Sequence struct {
 	latest int
-	count  int32
-	mu     sync.Mutex
+	mu     sync.RWMutex
 }
 
 // Next returns the next int of the sequence to use
@@ -26,20 +24,16 @@ func (seq *Sequence) Next() (int, bool) {
 
 // Overflow return true if, and only if, the sequence got overflow; otherwise returns false
 func (seq *Sequence) Overflow() bool {
+	seq.mu.RLock()
+	defer seq.mu.RUnlock()
+
 	return seq.latest+1 < seq.latest
-}
-
-// Count returns the current counter state
-func (seq *Sequence) Count() int {
-	return int(seq.count)
-}
-
-// Add increments by n the sequence counter
-func (seq *Sequence) Add(n int) {
-	atomic.AddInt32(&seq.count, int32(n))
 }
 
 // Reset sets the next value of the sequence as 0
 func (seq *Sequence) Reset() {
+	seq.mu.RLock()
+	defer seq.mu.RUnlock()
+
 	seq.latest = 0
 }
