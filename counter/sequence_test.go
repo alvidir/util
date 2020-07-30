@@ -1,4 +1,4 @@
-package sequence
+package counter
 
 import (
 	"testing"
@@ -27,7 +27,8 @@ func TestNext(t *testing.T) {
 func TestOverflow(t *testing.T) {
 	maxUint := ^uint64(0)
 	maxInt := int64(maxUint >> 1)
-	subject := &Sequence{latest: maxInt - 1}
+	counter := Counter{latest: maxInt - 1}
+	subject := &Sequence{Counter: counter}
 
 	want := true
 	if _, got := subject.Next(); got != want {
@@ -42,7 +43,8 @@ func TestOverflow(t *testing.T) {
 func TestReset(t *testing.T) {
 	maxUint := ^uint64(0)
 	maxInt := int64(maxUint >> 1)
-	subject := &Sequence{latest: maxInt}
+	counter := Counter{latest: maxInt - 1}
+	subject := &Sequence{Counter: counter}
 
 	subject.Reset()
 
