@@ -52,6 +52,16 @@ func FindInt(slice []int, val int) (int, bool) {
 	return -1, false
 }
 
+// FindInt64 takes an slice of ints-64bits and finds the position of a provided value
+func FindInt64(slice []int64, val int64) (int, bool) {
+	for i, item := range slice {
+		if item == val {
+			return i, true
+		}
+	}
+	return -1, false
+}
+
 // FindString takes an slice of strings and finds the position of a provided value
 func FindString(slice []string, val string) (int, bool) {
 	for i, item := range slice {
