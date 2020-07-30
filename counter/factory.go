@@ -9,7 +9,7 @@ func InitCounter(start int64) *Counter {
 
 // NewLockSequence returns a locking sequence
 func NewLockSequence(mu sync.Locker) *Sequence {
-	return &Sequence{mu: mu}
+	return &Sequence{locker: mu}
 }
 
 //InitSequence returns a sequence starting from start, non default 0
