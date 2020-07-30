@@ -5,7 +5,7 @@ import (
 )
 
 // Abs returns the absolut value for a given int
-func Abs(n int) int {
+func Abs(n int64) int64 {
 	if n < 0 {
 		return -n
 	}
