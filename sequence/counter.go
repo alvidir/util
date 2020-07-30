@@ -5,25 +5,25 @@ import (
 )
 
 type Counter struct {
-	count int32
+	count int64
 }
 
 // Get returns the current counter value
-func (c *Counter) Get() int {
-	return int(c.count)
+func (c *Counter) Get() int64 {
+	return c.count
 }
 
 // Add increments by n the counter
-func (c *Counter) Add(n int) {
-	atomic.AddInt32(&c.count, int32(n))
+func (c *Counter) Add(n int64) {
+	atomic.AddInt64(&c.count, n)
 }
 
 // Increase increments by 1 the counter
 func (c *Counter) Increase() {
-	atomic.AddInt32(&c.count, 1)
+	atomic.AddInt64(&c.count, 1)
 }
 
 // Decrease decrements by 1 the counter
 func (c *Counter) Decrease() {
-	atomic.AddInt32(&c.count, -1)
+	atomic.AddInt64(&c.count, -1)
 }

@@ -5,12 +5,12 @@ import (
 )
 
 type Sequence struct {
-	latest int
+	latest int64
 	mu     sync.RWMutex
 }
 
 // Next returns the next int of the sequence to use
-func (seq *Sequence) Next() (int, bool) {
+func (seq *Sequence) Next() (int64, bool) {
 	seq.mu.Lock()
 	defer seq.mu.Unlock()
 

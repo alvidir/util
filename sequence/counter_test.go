@@ -7,7 +7,7 @@ import (
 func TestCounter(t *testing.T) {
 	subject := &Counter{}
 
-	want := 0
+	var want int64 = 0
 	if got := subject.Get(); got != want {
 		t.Errorf("Got on count %v, want %v", got, want)
 	}

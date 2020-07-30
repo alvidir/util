@@ -6,16 +6,16 @@ import (
 
 func TestNext(t *testing.T) {
 	subject := &Sequence{}
-	iterations := 100
+	var iterations int64 = 100
 
-	for want := 1; want < iterations; want++ {
+	for want := int64(1); want < iterations; want++ {
 		if got, ok := subject.Next(); got != want || !ok {
 			t.Errorf("Got on next %v, %v, want %v, %v", got, ok, want, true)
 		}
 	}
 
-	maxUint := ^uint(0)
-	maxInt := int(maxUint >> 1)
+	maxUint := ^uint64(0)
+	maxInt := int64(maxUint >> 1)
 	subject.latest = maxInt
 
 	want := false
@@ -25,8 +25,8 @@ func TestNext(t *testing.T) {
 }
 
 func TestOverflow(t *testing.T) {
-	maxUint := ^uint(0)
-	maxInt := int(maxUint >> 1)
+	maxUint := ^uint64(0)
+	maxInt := int64(maxUint >> 1)
 	subject := &Sequence{latest: maxInt - 1}
 
 	want := true
@@ -40,13 +40,13 @@ func TestOverflow(t *testing.T) {
 }
 
 func TestReset(t *testing.T) {
-	maxUint := ^uint(0)
-	maxInt := int(maxUint >> 1)
+	maxUint := ^uint64(0)
+	maxInt := int64(maxUint >> 1)
 	subject := &Sequence{latest: maxInt}
 
 	subject.Reset()
 
-	want := 1
+	var want int64 = 1
 	if got, ok := subject.Next(); got != want || !ok {
 		t.Errorf("Got after reset %v, %v, want %v, %v", got, ok, want, true)
 	}
