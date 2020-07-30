@@ -10,7 +10,7 @@ type Counter struct {
 
 // Get returns the current counter value
 func (c *Counter) Get() int64 {
-	return c.latest
+	return atomic.LoadInt64(&c.latest)
 }
 
 // Add increments by n the counter
