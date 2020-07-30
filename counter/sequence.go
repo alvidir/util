@@ -7,13 +7,15 @@ import (
 // A sequence represents a succesive
 type Sequence struct {
 	latest int64
-	mu     sync.RWMutex
+	mu     sync.Locker
 }
 
 // Next returns the next int of the sequence to use
 func (seq *Sequence) Next() (int64, bool) {
-	seq.mu.Lock()
-	defer seq.mu.Unlock()
+	if seq.mu != nil {
+		seq.mu.Lock()
+		defer seq.mu.Unlock()
+	}
 
 	var ok bool
 	if ok = seq.latest < seq.latest+1; ok {
@@ -25,16 +27,20 @@ func (seq *Sequence) Next() (int64, bool) {
 
 // Overflow return true if, and only if, the sequence got overflow; otherwise returns false
 func (seq *Sequence) Overflow() bool {
-	seq.mu.RLock()
-	defer seq.mu.RUnlock()
+	if seq.mu != nil {
+		seq.mu.Lock()
+		defer seq.mu.Unlock()
+	}
 
 	return seq.latest+1 < seq.latest
 }
 
 // Reset sets the next value of the sequence as 0
 func (seq *Sequence) Reset() {
-	seq.mu.RLock()
-	defer seq.mu.RUnlock()
+	if seq.mu != nil {
+		seq.mu.Lock()
+		defer seq.mu.Unlock()
+	}
 
 	seq.latest = 0
 }
