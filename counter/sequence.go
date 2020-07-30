@@ -6,8 +6,8 @@ import (
 
 // A sequence represents a succesive
 type Sequence struct {
-	Counter
-	mu sync.RWMutex
+	latest int64
+	mu     sync.RWMutex
 }
 
 // Next returns the next int of the sequence to use
@@ -16,8 +16,8 @@ func (seq *Sequence) Next() (int64, bool) {
 	defer seq.mu.Unlock()
 
 	var ok bool
-	if ok = seq.Get() < seq.Get()+1; ok {
-		seq.Increase()
+	if ok = seq.latest < seq.latest+1; ok {
+		seq.latest++
 	}
 
 	return seq.latest, ok
