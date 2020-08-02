@@ -3,20 +3,20 @@ package observer
 import "sync"
 
 type subject struct {
-	observers sync.Map
+	sync.Map
 }
 
-func (s *subject) Register(obs Observer) {
-	s.observers.Store(obs, nil)
+func (sbj *subject) Register(obs Observer) {
+	sbj.Store(obs, nil)
 }
 
-func (s *subject) Unregister(obs Observer) {
-	s.observers.Delete(obs)
+func (sbj *subject) Unregister(obs Observer) {
+	sbj.Delete(obs)
 }
 
-func (s *subject) Broadcast(msg interface{}) {
+func (sbj *subject) Broadcast(msg interface{}) {
 	wg := &sync.WaitGroup{}
-	s.observers.Range(func(obs interface{}, _ interface{}) bool {
+	sbj.Range(func(obs interface{}, _ interface{}) bool {
 		wg.Add(1) // each iteration triggers a new goroutine
 
 		go func(wg *sync.WaitGroup, obs Observer) {

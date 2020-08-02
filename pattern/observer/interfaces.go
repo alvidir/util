@@ -9,5 +9,5 @@ type Subject interface {
 
 // Observer represents an object waiting for notifications from a subject
 type Observer interface {
-	OnUpdate(interface{})
+	OnNotification(interface{})
 }
