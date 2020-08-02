@@ -21,7 +21,7 @@ func (sbj *subject) Broadcast(msg interface{}) {
 
 		go func(wg *sync.WaitGroup, obs Observer) {
 			defer wg.Done()
-			obs.OnUpdate(msg)
+			obs.OnNotification(msg)
 		}(wg, obs.(Observer))
 
 		return true
