@@ -36,6 +36,7 @@ func (s *Single) initInstance() (err error) {
 	return
 }
 
+// GetInstance returns always the same instance.
 func (s *Single) GetInstance() (i interface{}, err error) {
 	if i = s.instance; i != nil {
 		// if singleton's instance has already been initialized: there is no sense in to locking the mutex,
@@ -50,4 +51,9 @@ func (s *Single) GetInstance() (i interface{}, err error) {
 
 	i = s.instance
 	return
+}
+
+// Reset doesn't wait for any goroutine to end its reading, it forces the instance to become nil.
+func (s *Single) Reset() {
+	s.instance = nil
 }

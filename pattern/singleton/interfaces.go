@@ -5,4 +5,7 @@ type Singleton interface {
 	// GetInstance returns the instance stored in the singleton. Multiple calls to this
 	// method returns the same instance.
 	GetInstance() (interface{}, error)
+
+	// Reset forces the singleton's instance to become nil.
+	Reset()
 }
