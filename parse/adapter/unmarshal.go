@@ -1,7 +1,10 @@
 package adapter
 
-import "github.com/alvidir/util/stream/reader"
+import (
+	"github.com/alvidir/util/stream/reader"
+)
 
+// Unmarshal is the default unmarshaler method
 type Unmarshal func([]byte, interface{}) error
 
 // Unmarshaler represents a decoder
@@ -9,7 +12,7 @@ type Unmarshaler struct {
 	Fx Unmarshal
 }
 
-// Marshal encode an interface object into an array of bytes
+// Unmarshal dencode json array into an interface object
 func (adapter *Unmarshaler) Unmarshal(v []byte, i interface{}) error {
 	return adapter.Fx(v, i)
 }

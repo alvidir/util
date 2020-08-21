@@ -1,5 +1,6 @@
 package adapter
 
+// Adaptee adapts a parser
 type Adaptee struct {
 	X_Marshal   Marshaler
 	X_Unmarshal Unmarshaler

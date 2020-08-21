@@ -10,7 +10,7 @@ func NewUnmarshaler(unmarshal Unmarshal) *Unmarshaler {
 	return &Unmarshaler{unmarshal}
 }
 
-// New builds a new Encoder
+// NewEncoder builds a new Encoder
 func NewEncoder(marshal Marshaler, unmarshal Unmarshaler) Adapter {
 	return &Adaptee{marshal, unmarshal}
 }
