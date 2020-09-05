@@ -16,3 +16,9 @@ type Tx interface {
 	Result() (interface{}, error)
 	Done() <-chan struct{}
 }
+
+// Public represents the public data of a transaction
+type Public interface {
+	Get(string) interface{}
+	Set(string, interface{}) bool
+}
