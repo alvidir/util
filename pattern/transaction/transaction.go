@@ -9,7 +9,7 @@ import (
 type transaction struct {
 	body    Body          // transaction's body
 	checked bool          // determines if the precondition has passed of not
-	done    chan struct{} // done channel is closed each time the transaction ends
+	done    chan struct{} // a brand new channel is created foreach execution and closed once it ends
 	result  interface{}   // transaction's result
 	err     error         // if any error does happens while transaction execution it's here saved
 }
@@ -38,8 +38,8 @@ func (tx *transaction) checkBody() bool {
 }
 
 func (tx *transaction) Execute(ctx context.Context) {
-	defer tx.hasFinished()
 	tx.done = make(chan struct{})
+	defer tx.hasFinished()
 
 	if checked := tx.checkBody(); !checked {
 		return
