@@ -28,3 +28,16 @@ func CheckAllEnv(keys ...string) (values []string, err error) {
 
 	return
 }
+
+// CheckNemptyEnv looks up for all the env keys and returns an slice of its values, if exists and not empty, else err != nil
+func CheckNemptyEnv(keys ...string) (values []string, err error) {
+	values = make([]string, len(keys))
+	for index, key := range keys {
+		if values[index] = os.Getenv(key); len(values[index]) == 0 {
+			err = fmt.Errorf(errEnvIsEmpty, key)
+			return
+		}
+	}
+
+	return
+}
