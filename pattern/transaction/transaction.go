@@ -15,7 +15,10 @@ type transaction struct {
 }
 
 func (tx *transaction) hasFinished() {
-	defer close(tx.done)
+	defer func() {
+		close(tx.done)
+		tx.done = make(chan struct{})
+	}()
 
 	if !tx.checked {
 		return
@@ -38,7 +41,6 @@ func (tx *transaction) checkBody() bool {
 }
 
 func (tx *transaction) Execute(ctx context.Context) {
-	tx.done = make(chan struct{})
 	defer tx.hasFinished()
 
 	if checked := tx.checkBody(); !checked {

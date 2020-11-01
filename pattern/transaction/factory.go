@@ -4,5 +4,6 @@ package transaction
 func NewTransaction(body Body) Tx {
 	return &transaction{
 		body: body,
+		done: make(chan struct{}),
 	}
 }
