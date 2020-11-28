@@ -43,7 +43,7 @@ func (tx *transaction) checkBody() bool {
 func (tx *transaction) Execute(ctx context.Context) {
 	defer tx.hasFinished()
 
-	if checked := tx.checkBody(); !checked {
+	if tx.checked = tx.checkBody(); !tx.checked {
 		return
 	}
 
