@@ -1,9 +1,23 @@
-package singleton
+package util
 
 import (
 	"fmt"
 	"sync"
 )
+
+const (
+	errorNoNewFunc = "no NewFunc has been set for the singleton instance"
+)
+
+// A Singleton represents an instance of an object that has to be the same one on each call
+type Singleton interface {
+	// GetInstance returns the instance stored in the singleton. Multiple calls to this
+	// method returns the same instance.
+	GetInstance() (interface{}, error)
+
+	// Reset forces the singleton's instance to become nil.
+	Reset()
+}
 
 // NewFunc is the initializer of the singleton's instance. This method is called once.
 type NewFunc func() (interface{}, error)

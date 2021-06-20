@@ -1,11 +1,9 @@
-package conc
+package util
 
 import (
 	"os"
 	"sort"
 	"sync"
-
-	method "github.com/alvidir/util/method"
 )
 
 // Spawn creates a new goroutine where to execute a provided action and returns the pid of the
@@ -24,8 +22,8 @@ func Spawn(action func()) int {
 // CoherentLock ensures the same locking order for a set of lockers
 func CoherentLock(lockers ...sync.Locker) {
 	sort.Slice(lockers[:], func(i, j int) bool {
-		i_ptr, _ := method.ToUintptr(lockers[i])
-		j_ptr, _ := method.ToUintptr(lockers[j])
+		i_ptr, _ := ToUintptr(lockers[i])
+		j_ptr, _ := ToUintptr(lockers[j])
 		return i_ptr < j_ptr
 	})
 
@@ -41,8 +39,8 @@ func CoherentLock(lockers ...sync.Locker) {
 // CoherentUnlock ensures the same unlocking order for a set of lockers
 func CoherentUnlock(lockers ...sync.Locker) {
 	sort.Slice(lockers[:], func(i, j int) bool {
-		i_ptr, _ := method.ToUintptr(lockers[i])
-		j_ptr, _ := method.ToUintptr(lockers[j])
+		i_ptr, _ := ToUintptr(lockers[i])
+		j_ptr, _ := ToUintptr(lockers[j])
 		return i_ptr < j_ptr
 	})
 
@@ -55,9 +53,9 @@ func CoherentUnlock(lockers ...sync.Locker) {
 	}
 }
 
-// Merge converts a list of channels to a single channel.
+// ChanMerge converts a list of channels to a single channel.
 // For more information about Merge function go to https://blog.golang.org/pipelines.
-func Merge(done <-chan struct{}, cs ...<-chan interface{}) <-chan interface{} {
+func ChanMerge(done <-chan struct{}, cs ...<-chan interface{}) <-chan interface{} {
 	var wg sync.WaitGroup
 	out := make(chan interface{})
 

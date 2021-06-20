@@ -1,4 +1,4 @@
-package counter
+package util
 
 import (
 	"testing"
@@ -21,21 +21,6 @@ func TestNext(t *testing.T) {
 	want := false
 	if _, got := subject.Next(); got != want {
 		t.Errorf("Got on next.ok %v, want %v", got, want)
-	}
-}
-
-func TestOverflow(t *testing.T) {
-	maxUint := ^uint64(0)
-	maxInt := int64(maxUint >> 1)
-	subject := &Sequence{latest: maxInt - 1}
-
-	want := true
-	if _, got := subject.Next(); got != want {
-		t.Errorf("Got on next %v, want %v", got, want)
-	}
-
-	if got := subject.Overflow(); got != want {
-		t.Errorf("Got on overflow %v, want %v", got, want)
 	}
 }
 
