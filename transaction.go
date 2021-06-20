@@ -2,9 +2,20 @@ package util
 
 import (
 	"context"
+	"fmt"
 )
 
 type Params map[string]interface{}
+
+// A Promise represents some value that will be resolved in the future
+type Promise interface {
+	// Done returns a read-only channel that will be closed as soon as the
+	// value gets resolved or an error happens
+	Done() <-chan struct{}
+
+	// Get returns the expected value or and error, if any
+	Get() (interface{}, error)
+}
 
 // A Tx is the context of a transaction's execution
 type Tx interface {
@@ -32,7 +43,7 @@ type Tx interface {
 // fully performed or reversed otherwise
 type Transaction interface {
 	// Execute executes the transaction for a given context
-	Execute(context.Context)
+	Execute(context.Context) Promise
 
 	// Details returns the name and information of the transaction
 	Details() (string, string)
@@ -42,9 +53,10 @@ type TxBuilder interface {
 	SetInfo(string) TxBuilder
 	SetPrecondition(func(Tx) error) TxBuilder
 	SetPrepare(func(Tx) error) TxBuilder
-	SetCommit(func(Tx) error) TxBuilder
-	SetRollback(func(Tx) error) TxBuilder
-	SetFinish(func(Tx) error) TxBuilder
+	SetCommit(func(Tx)) TxBuilder
+	SetRollback(func(Tx)) TxBuilder
+	SetFinish(func(Tx)) TxBuilder
+	//WithParameter(string, types.BasicKind) TxBuilder
 	WithException(string, error) TxBuilder
 	Build() Transaction
 }
@@ -54,30 +66,78 @@ func NewTransactionBuilder(name string, body func(Tx) (interface{}, error)) TxBu
 	return &transaction{Name: name, postcondition: body}
 }
 
+type job struct {
+	context.Context
+	cancel context.CancelFunc
+	result interface{}
+	err    error
+}
+
+func (job *job) Get() (interface{}, error) {
+	return job.result, job.err
+}
+
+func (job *job) Exception(string) error {
+	return nil
+}
+
+func (job *job) Parameter(string) (interface{}, bool) {
+	return nil, false
+}
+
+func (job *job) Sandbox(string, interface{}) (interface{}, bool) {
+	return nil, false
+}
+
+func (job *job) Cancel() {
+	job.cancel()
+}
+
 type transaction struct {
 	Name          string
 	Info          string
 	precondition  func(Tx) error
 	prepare       func(Tx) error
 	postcondition func(Tx) (interface{}, error)
-	commit        func(Tx) error
-	rollback      func(Tx) error
-	finish        func(Tx) error
-	exceptions    map[string]error
+	commit        func(Tx)
+	rollback      func(Tx)
+	finish        func(Tx)
+	//parameters    map[string]types.BasicKind
+	exceptions map[string]error
 }
 
-// Transaction methods
-// Execute executes the transaction for a given context
-func (tx *transaction) Execute(context.Context) {
+func (tx *transaction) onFinish(job *job) {
+	defer func() {
+		tx.finish(job)
+		job.cancel()
+	}()
 
+	if panic := recover(); panic != nil {
+		job.err = fmt.Errorf("%v", panic)
+		tx.rollback(job)
+	} else if job.err != nil {
+		tx.rollback(job) // err is non-nil; don't change it
+	} else {
+		tx.commit(job)
+	}
 }
 
-// Details returns the name and information of the transaction
+// TRANSACTION METHODS
+func (tx *transaction) Execute(ctx context.Context) Promise {
+	job := &job{
+		Context: ctx,
+		result:  "",
+	}
+
+	defer tx.onFinish(job)
+	return job
+}
+
 func (tx *transaction) Details() (string, string) {
 	return tx.Name, tx.Info
 }
 
-// Builder methods
+// BUILDER METHODS
 func (tx *transaction) SetInfo(info string) TxBuilder {
 	tx.Info = info
 	return tx
@@ -93,20 +153,25 @@ func (tx *transaction) SetPrepare(fn func(Tx) error) TxBuilder {
 	return tx
 }
 
-func (tx *transaction) SetCommit(fn func(Tx) error) TxBuilder {
+func (tx *transaction) SetCommit(fn func(Tx)) TxBuilder {
 	tx.commit = fn
 	return tx
 }
 
-func (tx *transaction) SetRollback(fn func(Tx) error) TxBuilder {
+func (tx *transaction) SetRollback(fn func(Tx)) TxBuilder {
 	tx.rollback = fn
 	return tx
 }
 
-func (tx *transaction) SetFinish(fn func(Tx) error) TxBuilder {
+func (tx *transaction) SetFinish(fn func(Tx)) TxBuilder {
 	tx.finish = fn
 	return tx
 }
+
+// func (tx *transaction) WithParameter(name string, t types.BasicKind) TxBuilder {
+// 	tx.parameters[name] = t
+// 	return tx
+// }
 
 func (tx *transaction) WithException(key string, err error) TxBuilder {
 	tx.exceptions[key] = err
