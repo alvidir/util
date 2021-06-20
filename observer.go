@@ -2,6 +2,23 @@ package util
 
 import "sync"
 
+// Subject represents an element that will notify to a set of observers the happening of something
+type Subject interface {
+	Register(Observer)
+	Unregister(Observer)
+	Broadcast(interface{})
+}
+
+// Observer represents an object waiting for notifications from a subject
+type Observer interface {
+	OnNotification(interface{})
+}
+
+// NewSubject builds a brand new and empty subject
+func NewSubject() Subject {
+	return &subject{}
+}
+
 type subject struct {
 	sync.Map
 }
@@ -29,21 +46,4 @@ func (sbj *subject) Broadcast(msg interface{}) {
 
 	// Waiting for all observers to end its job
 	wg.Wait()
-}
-
-// Subject represents an element that will notify to a set of observers the happening of something
-type Subject interface {
-	Register(Observer)
-	Unregister(Observer)
-	Broadcast(interface{})
-}
-
-// Observer represents an object waiting for notifications from a subject
-type Observer interface {
-	OnNotification(interface{})
-}
-
-// NewSubject builds a brand new and empty subject
-func NewSubject() Subject {
-	return &subject{}
 }

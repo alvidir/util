@@ -3,31 +3,32 @@ package util
 import (
 	"fmt"
 	"strconv"
+	"strings"
 )
 
-// Try tries to execute todo method. If panicking: the program running is restored and panic
-// returned as an error. Err it's nil otherwise.
-func Try(todo func()) (err error) {
+// Recoverable runs the provided method fn recovering it from panic if any.
+// If panic then the trace is returned as an error, else err is nil
+func Recoverable(fn func()) (err error) {
 	defer func() {
 		if panic := recover(); panic != nil {
 			err = fmt.Errorf("%v", panic)
 		}
 	}()
 
-	todo()
+	fn()
 	return
 }
 
 // ToUintptr returns the uintptr stored into an interface.
 func ToUintptr(v interface{}) (ptr uintptr, err error) {
 	strptr := fmt.Sprintf("%p", v)
-	strptr = strptr[2:] // substring is needed to delete the 0x prefix
+	strptr = strings.Replace(strptr, "0x", "", -1)
 
-	var pseudo uint64
-	if pseudo, err = strconv.ParseUint(strptr, 16, 32); err != nil {
+	var mempos uint64
+	if mempos, err = strconv.ParseUint(strptr, 16, 64); err != nil {
 		return
 	}
 
-	ptr = uintptr(pseudo)
+	ptr = uintptr(mempos)
 	return
 }
