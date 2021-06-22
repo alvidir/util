@@ -3,6 +3,12 @@ package util
 import (
 	"context"
 	"fmt"
+	"sync"
+)
+
+const (
+	DataKey             = "data"
+	ErrUnknownException = "unknown exception"
 )
 
 type Params map[string]interface{}
@@ -21,7 +27,7 @@ type Promise interface {
 type Tx interface {
 	context.Context
 
-	// Exception crashes the transaction's execution if stills running
+	// Exception cancels the context of the calling thread if stills running
 	// and the exception exists, otherwise err != nil
 	Exception(string) error
 
@@ -50,12 +56,12 @@ type Transaction interface {
 }
 
 type TxBuilder interface {
-	SetInfo(string) TxBuilder
-	SetPrecondition(func(Tx) error) TxBuilder
-	SetPrepare(func(Tx) error) TxBuilder
-	SetCommit(func(Tx) error) TxBuilder
-	SetRollback(func(Tx) error) TxBuilder
-	SetFinish(func(Tx) error) TxBuilder
+	WithInfo(string) TxBuilder
+	WithPrecondition(func(Tx) error) TxBuilder
+	WithPrepare(func(Tx) error) TxBuilder
+	WithCommit(func(Tx) error) TxBuilder
+	WithRollback(func(Tx) error) TxBuilder
+	WithFinish(func(Tx) error) TxBuilder
 	WithException(string, error) TxBuilder
 	Build() Transaction
 }
@@ -69,25 +75,57 @@ type thread struct {
 	context.Context
 	*transaction
 
-	cancel context.CancelFunc
-	result interface{}
-	err    error
+	cancel  context.CancelFunc
+	sandbox map[string]interface{}
+	result  interface{}
+	err     error
+}
+
+func (thread *thread) error(err error) {
+	if thread.err != nil && err != nil {
+		err = fmt.Errorf("%s\n%s", thread.err.Error(), err.Error())
+	}
+
+	thread.err = err
 }
 
 func (thread *thread) Get() (interface{}, error) {
 	return thread.result, thread.err
 }
 
-func (thread *thread) Exception(string) error {
+func (thread *thread) Exception(id string) error {
+	v, exists := thread.exceptions.Load(id)
+	if !exists {
+		return fmt.Errorf(ErrUnknownException)
+	}
+
+	thread.err = v.(error)
+	thread.cancel()
 	return nil
 }
 
-func (thread *thread) Parameter(string) (interface{}, bool) {
-	return nil, false
+func (thread *thread) Parameter(key string) (v interface{}, ok bool) {
+	data := thread.Value(DataKey)
+	if ok = data != nil; !ok {
+		return
+	}
+
+	var params Params
+	if params, ok = data.(Params); !ok {
+		return
+	}
+
+	v, ok = params[key]
+	return
 }
 
-func (thread *thread) Sandbox(string, interface{}) (interface{}, bool) {
-	return nil, false
+func (thread *thread) Sandbox(key string, new interface{}) (old interface{}, ok bool) {
+	if old, ok = thread.sandbox[key]; new != nil {
+		// if a new value is set, then the method behaves as a Load and Store function
+		thread.sandbox[key] = new
+	}
+
+	return
 }
 
 func (thread *thread) Cancel() {
@@ -103,17 +141,13 @@ type transaction struct {
 	commit        func(Tx) error
 	rollback      func(Tx) error
 	finish        func(Tx) error
-	exceptions    map[string]error
+	exceptions    sync.Map
 }
 
 func (tx *transaction) doRollback(thread *thread) {
 	if tx.rollback != nil { // rollback is optional
 		if err := tx.rollback(thread); err != nil {
-			if thread.err != nil {
-				err = fmt.Errorf("%s\n%s", thread.err.Error(), err.Error())
-			}
-
-			thread.err = err
+			thread.error(err)
 		}
 	}
 }
@@ -140,35 +174,49 @@ func (tx *transaction) finalize(thread *thread) {
 }
 
 func (tx *transaction) done(thread *thread) {
+	defer thread.cancel()
 	if tx.finish != nil { // finish is optional
-		if err := tx.finish(thread); err != nil {
-			if thread.err != nil {
-				err = fmt.Errorf("%s\n%s", thread.err.Error(), err.Error())
-			}
-
-			thread.err = err
-		}
+		err := tx.finish(thread)
+		thread.error(err)
 	}
+}
 
-	thread.cancel()
+func (tx *transaction) spawn(thread *thread) <-chan struct{} {
+	done := make(chan struct{})
+	go func(done chan<- struct{}) {
+		defer close(done)
+
+		if tx.prepare != nil { // prepare is optional
+			tx.prepare(thread)
+		}
+
+		var err error
+		if thread.result, err = tx.postcondition(thread); err != nil {
+			thread.error(err)
+			thread.cancel()
+		}
+	}(done)
+
+	return done
 }
 
 func (tx *transaction) run(thread *thread) {
 	if tx.precondition != nil { // precondition is optional
-		if thread.err = tx.precondition(thread); thread.err != nil {
+		if err := tx.precondition(thread); err != nil {
+			thread.error(err)
 			thread.cancel()
 			return
 		}
 	}
 
 	defer tx.finalize(thread)
-	if tx.prepare != nil { // prepare is optional
-		tx.prepare(thread)
-	}
 
-	if thread.result, thread.err = tx.postcondition(thread); thread.err != nil {
-		thread.cancel()
-		return
+	select {
+	case <-tx.spawn(thread):
+		// the body of the transaction has been completed successfully
+	case <-thread.Done():
+		err := thread.Err()
+		thread.error(err)
 	}
 }
 
@@ -191,41 +239,55 @@ func (tx *transaction) Details() (string, string) {
 }
 
 // BUILDER METHODS
-func (tx *transaction) SetInfo(info string) TxBuilder {
+func (tx *transaction) WithInfo(info string) TxBuilder {
 	tx.Info = info
 	return tx
 }
 
-func (tx *transaction) SetPrecondition(fn func(Tx) error) TxBuilder {
+func (tx *transaction) WithPrecondition(fn func(Tx) error) TxBuilder {
 	tx.precondition = fn
 	return tx
 }
 
-func (tx *transaction) SetPrepare(fn func(Tx) error) TxBuilder {
+func (tx *transaction) WithPrepare(fn func(Tx) error) TxBuilder {
 	tx.prepare = fn
 	return tx
 }
 
-func (tx *transaction) SetCommit(fn func(Tx) error) TxBuilder {
+func (tx *transaction) WithCommit(fn func(Tx) error) TxBuilder {
 	tx.commit = fn
 	return tx
 }
 
-func (tx *transaction) SetRollback(fn func(Tx) error) TxBuilder {
+func (tx *transaction) WithRollback(fn func(Tx) error) TxBuilder {
 	tx.rollback = fn
 	return tx
 }
 
-func (tx *transaction) SetFinish(fn func(Tx) error) TxBuilder {
+func (tx *transaction) WithFinish(fn func(Tx) error) TxBuilder {
 	tx.finish = fn
 	return tx
 }
 
 func (tx *transaction) WithException(key string, err error) TxBuilder {
-	tx.exceptions[key] = err
+	tx.exceptions.Store(key, err)
 	return tx
 }
 
 func (tx *transaction) Build() Transaction {
-	return tx
+	// the build function shall clone the transaction itself in order to avoi potential
+	// modifications of the transaction once builded
+	clone := &transaction{
+		Name:          tx.Name,
+		Info:          tx.Info,
+		precondition:  tx.precondition,
+		prepare:       tx.prepare,
+		postcondition: tx.postcondition,
+		commit:        tx.commit,
+		rollback:      tx.rollback,
+		finish:        tx.finish,
+		exceptions:    tx.exceptions,
+	}
+
+	return clone
 }
