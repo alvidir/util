@@ -39,7 +39,7 @@ type Tx interface {
 	Cancel()
 }
 
-// A transaction represents an atomic and sequential set of actions that must be
+// A Transaction represents an atomic and sequential set of actions that must be
 // fully performed or reversed otherwise
 type Transaction interface {
 	// Execute executes the transaction for a given context
@@ -53,10 +53,9 @@ type TxBuilder interface {
 	SetInfo(string) TxBuilder
 	SetPrecondition(func(Tx) error) TxBuilder
 	SetPrepare(func(Tx) error) TxBuilder
-	SetCommit(func(Tx)) TxBuilder
-	SetRollback(func(Tx)) TxBuilder
-	SetFinish(func(Tx)) TxBuilder
-	//WithParameter(string, types.BasicKind) TxBuilder
+	SetCommit(func(Tx) error) TxBuilder
+	SetRollback(func(Tx) error) TxBuilder
+	SetFinish(func(Tx) error) TxBuilder
 	WithException(string, error) TxBuilder
 	Build() Transaction
 }
@@ -66,31 +65,33 @@ func NewTransactionBuilder(name string, body func(Tx) (interface{}, error)) TxBu
 	return &transaction{Name: name, postcondition: body}
 }
 
-type job struct {
+type thread struct {
 	context.Context
+	*transaction
+
 	cancel context.CancelFunc
 	result interface{}
 	err    error
 }
 
-func (job *job) Get() (interface{}, error) {
-	return job.result, job.err
+func (thread *thread) Get() (interface{}, error) {
+	return thread.result, thread.err
 }
 
-func (job *job) Exception(string) error {
+func (thread *thread) Exception(string) error {
 	return nil
 }
 
-func (job *job) Parameter(string) (interface{}, bool) {
+func (thread *thread) Parameter(string) (interface{}, bool) {
 	return nil, false
 }
 
-func (job *job) Sandbox(string, interface{}) (interface{}, bool) {
+func (thread *thread) Sandbox(string, interface{}) (interface{}, bool) {
 	return nil, false
 }
 
-func (job *job) Cancel() {
-	job.cancel()
+func (thread *thread) Cancel() {
+	thread.cancel()
 }
 
 type transaction struct {
@@ -99,38 +100,90 @@ type transaction struct {
 	precondition  func(Tx) error
 	prepare       func(Tx) error
 	postcondition func(Tx) (interface{}, error)
-	commit        func(Tx)
-	rollback      func(Tx)
-	finish        func(Tx)
-	//parameters    map[string]types.BasicKind
-	exceptions map[string]error
+	commit        func(Tx) error
+	rollback      func(Tx) error
+	finish        func(Tx) error
+	exceptions    map[string]error
 }
 
-func (tx *transaction) onFinish(job *job) {
-	defer func() {
-		tx.finish(job)
-		job.cancel()
-	}()
+func (tx *transaction) doRollback(thread *thread) {
+	if err := tx.rollback(thread); err != nil {
+		if thread.err != nil {
+			err = fmt.Errorf("%s\n%s", thread.err.Error(), err.Error())
+		}
+
+		thread.err = err
+	}
+}
+
+func (tx *transaction) doCommit(thread *thread) {
+	if thread.err = tx.commit(thread); thread.err != nil {
+		tx.doRollback(thread)
+	}
+}
+
+func (tx *transaction) finalize(thread *thread) {
+	defer tx.done(thread)
 
 	if panic := recover(); panic != nil {
-		job.err = fmt.Errorf("%v", panic)
-		tx.rollback(job)
-	} else if job.err != nil {
-		tx.rollback(job) // err is non-nil; don't change it
+		thread.err = fmt.Errorf("%v", panic)
+		tx.doRollback(thread)
+	} else if thread.err != nil {
+		tx.doRollback(thread) // err is non-nil; don't change it
 	} else {
-		tx.commit(job)
+		tx.doCommit(thread)
+	}
+}
+
+func (tx *transaction) done(thread *thread) {
+	if tx.finish != nil {
+		// finish is an optional function, so its nullability must be checked
+		if err := tx.finish(thread); err != nil {
+			if thread.err != nil {
+				err = fmt.Errorf("%s\n%s", thread.err.Error(), err.Error())
+			}
+
+			thread.err = err
+		}
+	}
+
+	thread.cancel()
+}
+
+func (tx *transaction) run(thread *thread) {
+	if tx.precondition != nil {
+		// precondition is an optional function, so its nullability must be checked
+		if thread.err = tx.precondition(thread); thread.err != nil {
+			thread.cancel()
+			return
+		}
+	}
+
+	defer tx.finalize(thread)
+
+	if tx.prepare != nil {
+		// prepare is an optional function, so its nullability must be checked
+		tx.prepare(thread)
+	}
+
+	if thread.result, thread.err = tx.postcondition(thread); thread.err != nil {
+		thread.cancel()
+		return
 	}
 }
 
 // TRANSACTION METHODS
 func (tx *transaction) Execute(ctx context.Context) Promise {
-	job := &job{
-		Context: ctx,
-		result:  "",
+	ctx, cancel := context.WithCancel(ctx)
+
+	thread := &thread{
+		Context:     ctx,
+		transaction: tx,
+		cancel:      cancel,
 	}
 
-	defer tx.onFinish(job)
-	return job
+	go tx.run(thread)
+	return thread
 }
 
 func (tx *transaction) Details() (string, string) {
@@ -153,25 +206,20 @@ func (tx *transaction) SetPrepare(fn func(Tx) error) TxBuilder {
 	return tx
 }
 
-func (tx *transaction) SetCommit(fn func(Tx)) TxBuilder {
+func (tx *transaction) SetCommit(fn func(Tx) error) TxBuilder {
 	tx.commit = fn
 	return tx
 }
 
-func (tx *transaction) SetRollback(fn func(Tx)) TxBuilder {
+func (tx *transaction) SetRollback(fn func(Tx) error) TxBuilder {
 	tx.rollback = fn
 	return tx
 }
 
-func (tx *transaction) SetFinish(fn func(Tx)) TxBuilder {
+func (tx *transaction) SetFinish(fn func(Tx) error) TxBuilder {
 	tx.finish = fn
 	return tx
 }
-
-// func (tx *transaction) WithParameter(name string, t types.BasicKind) TxBuilder {
-// 	tx.parameters[name] = t
-// 	return tx
-// }
 
 func (tx *transaction) WithException(key string, err error) TxBuilder {
 	tx.exceptions[key] = err
