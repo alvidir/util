@@ -60,7 +60,7 @@ type TxBuilder interface {
 	Build() Transaction
 }
 
-// NewTransactionBuilder returns a brand new builder
+// NewTransactionBuilder returns a brand new transaction builder
 func NewTransactionBuilder(name string, body func(Tx) (interface{}, error)) TxBuilder {
 	return &transaction{Name: name, postcondition: body}
 }
@@ -107,18 +107,22 @@ type transaction struct {
 }
 
 func (tx *transaction) doRollback(thread *thread) {
-	if err := tx.rollback(thread); err != nil {
-		if thread.err != nil {
-			err = fmt.Errorf("%s\n%s", thread.err.Error(), err.Error())
-		}
+	if tx.rollback != nil { // rollback is optional
+		if err := tx.rollback(thread); err != nil {
+			if thread.err != nil {
+				err = fmt.Errorf("%s\n%s", thread.err.Error(), err.Error())
+			}
 
-		thread.err = err
+			thread.err = err
+		}
 	}
 }
 
 func (tx *transaction) doCommit(thread *thread) {
-	if thread.err = tx.commit(thread); thread.err != nil {
-		tx.doRollback(thread)
+	if tx.commit != nil { // commit is optional
+		if thread.err = tx.commit(thread); thread.err != nil {
+			tx.doRollback(thread)
+		}
 	}
 }
 
@@ -136,8 +140,7 @@ func (tx *transaction) finalize(thread *thread) {
 }
 
 func (tx *transaction) done(thread *thread) {
-	if tx.finish != nil {
-		// finish is an optional function, so its nullability must be checked
+	if tx.finish != nil { // finish is optional
 		if err := tx.finish(thread); err != nil {
 			if thread.err != nil {
 				err = fmt.Errorf("%s\n%s", thread.err.Error(), err.Error())
@@ -151,8 +154,7 @@ func (tx *transaction) done(thread *thread) {
 }
 
 func (tx *transaction) run(thread *thread) {
-	if tx.precondition != nil {
-		// precondition is an optional function, so its nullability must be checked
+	if tx.precondition != nil { // precondition is optional
 		if thread.err = tx.precondition(thread); thread.err != nil {
 			thread.cancel()
 			return
@@ -160,9 +162,7 @@ func (tx *transaction) run(thread *thread) {
 	}
 
 	defer tx.finalize(thread)
-
-	if tx.prepare != nil {
-		// prepare is an optional function, so its nullability must be checked
+	if tx.prepare != nil { // prepare is optional
 		tx.prepare(thread)
 	}
 
