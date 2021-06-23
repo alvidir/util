@@ -11,7 +11,7 @@ type Subject interface {
 
 // Observer represents an object waiting for notifications from a subject
 type Observer interface {
-	OnNotification(interface{})
+	OnNotify(interface{})
 }
 
 // NewSubject builds a brand new and empty subject
@@ -38,7 +38,7 @@ func (sbj *subject) Broadcast(msg interface{}) {
 
 		go func(wg *sync.WaitGroup, obs Observer) {
 			defer wg.Done()
-			obs.OnNotification(msg)
+			obs.OnNotify(msg)
 		}(wg, obs.(Observer))
 
 		return true

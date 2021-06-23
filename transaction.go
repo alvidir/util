@@ -58,10 +58,8 @@ type Transaction interface {
 type TxBuilder interface {
 	WithInfo(string) TxBuilder
 	WithPrecondition(func(Tx) error) TxBuilder
-	WithPrepare(func(Tx) error) TxBuilder
 	WithCommit(func(Tx) error) TxBuilder
 	WithRollback(func(Tx) error) TxBuilder
-	WithFinish(func(Tx) error) TxBuilder
 	WithException(string, error) TxBuilder
 	Build() Transaction
 }
@@ -83,10 +81,10 @@ type thread struct {
 
 func (thread *thread) error(err error) {
 	if thread.err != nil && err != nil {
-		err = fmt.Errorf("%s\n%s", thread.err.Error(), err.Error())
+		thread.err = fmt.Errorf("%s\n%s", thread.err.Error(), err.Error())
+	} else if err != nil {
+		thread.err = err
 	}
-
-	thread.err = err
 }
 
 func (thread *thread) Get() (interface{}, error) {
@@ -136,11 +134,9 @@ type transaction struct {
 	Name          string
 	Info          string
 	precondition  func(Tx) error
-	prepare       func(Tx) error
 	postcondition func(Tx) (interface{}, error)
 	commit        func(Tx) error
 	rollback      func(Tx) error
-	finish        func(Tx) error
 	exceptions    sync.Map
 }
 
@@ -161,7 +157,11 @@ func (tx *transaction) doCommit(thread *thread) {
 }
 
 func (tx *transaction) finalize(thread *thread) {
-	defer tx.done(thread)
+	defer thread.cancel()
+
+	// if the context has been canceled it is required to catch the cause
+	err := thread.Err()
+	thread.error(err)
 
 	if panic := recover(); panic != nil {
 		thread.err = fmt.Errorf("%v", panic)
@@ -173,28 +173,16 @@ func (tx *transaction) finalize(thread *thread) {
 	}
 }
 
-func (tx *transaction) done(thread *thread) {
-	defer thread.cancel()
-	if tx.finish != nil { // finish is optional
-		err := tx.finish(thread)
-		thread.error(err)
-	}
-}
-
 func (tx *transaction) spawn(thread *thread) <-chan struct{} {
 	done := make(chan struct{})
 	go func(done chan<- struct{}) {
 		defer close(done)
 
-		if tx.prepare != nil { // prepare is optional
-			tx.prepare(thread)
-		}
-
 		var err error
 		if thread.result, err = tx.postcondition(thread); err != nil {
 			thread.error(err)
-			thread.cancel()
 		}
+
 	}(done)
 
 	return done
@@ -215,8 +203,8 @@ func (tx *transaction) run(thread *thread) {
 	case <-tx.spawn(thread):
 		// the body of the transaction has been completed successfully
 	case <-thread.Done():
-		err := thread.Err()
-		thread.error(err)
+		// the context has been canceled before the body could finish
+		// so the execution must be stoped
 	}
 }
 
@@ -249,11 +237,6 @@ func (tx *transaction) WithPrecondition(fn func(Tx) error) TxBuilder {
 	return tx
 }
 
-func (tx *transaction) WithPrepare(fn func(Tx) error) TxBuilder {
-	tx.prepare = fn
-	return tx
-}
-
 func (tx *transaction) WithCommit(fn func(Tx) error) TxBuilder {
 	tx.commit = fn
 	return tx
@@ -261,11 +244,6 @@ func (tx *transaction) WithCommit(fn func(Tx) error) TxBuilder {
 
 func (tx *transaction) WithRollback(fn func(Tx) error) TxBuilder {
 	tx.rollback = fn
-	return tx
-}
-
-func (tx *transaction) WithFinish(fn func(Tx) error) TxBuilder {
-	tx.finish = fn
 	return tx
 }
 
@@ -281,11 +259,9 @@ func (tx *transaction) Build() Transaction {
 		Name:          tx.Name,
 		Info:          tx.Info,
 		precondition:  tx.precondition,
-		prepare:       tx.prepare,
 		postcondition: tx.postcondition,
 		commit:        tx.commit,
 		rollback:      tx.rollback,
-		finish:        tx.finish,
 		exceptions:    tx.exceptions,
 	}
 
