@@ -16,7 +16,7 @@ func TestTransaction_details(t *testing.T) {
 
 	transaction := builder.Build()
 	if gotName, gotInfo := transaction.Details(); gotName != wantName || gotInfo != wantInfo {
-		t.Errorf("Got transaction's details %v, %v, want %v, %v", gotName, gotInfo, wantName, wantInfo)
+		t.Errorf("Got transaction's details %s, %s, want %s, %s", gotName, gotInfo, wantName, wantInfo)
 	}
 }
 
@@ -40,7 +40,93 @@ func TestTransaction_minimal(t *testing.T) {
 	}
 
 	if got, err := job.Get(); err != nil || got != want {
-		t.Errorf("Got transaction's result %v, %v, want %v, %v", got, err, want, nil)
+		t.Errorf("Got transaction's result %v, %v, want %s, %v", got, err, want, nil)
+	}
+}
+
+func TestTransaction_sandbox(t *testing.T) {
+	key := "item"
+	want := "hello world"
+
+	builder := NewTransactionBuilder("testing", func(tx Tx) (interface{}, error) {
+		if old, ok := tx.Sandbox(key, want); ok || old != nil {
+			t.Errorf("Got unexpected item for key %v = %v, want %v", key, old, nil)
+		}
+
+		return nil, nil
+	}).WithCommit(func(tx Tx) error {
+		if got, ok := tx.Sandbox(key, want); !ok || got != want {
+			t.Errorf("Got item %v, want %v", got, want)
+		}
+
+		return nil
+	})
+
+	ctx := context.Background()
+	job := builder.Build().Execute(ctx)
+
+	// wait for the transaction to finish
+	<-job.Done()
+}
+
+func TestTransaction_parameters(t *testing.T) {
+	keyOK := "param"
+	keyKO := "no-param"
+
+	want := "hello world"
+	builder := NewTransactionBuilder("testing", func(tx Tx) (interface{}, error) {
+		if got, ok := tx.Parameter(keyOK); !ok {
+			t.Errorf("Got no parameter for name %v", keyOK)
+		} else if got != want {
+			t.Errorf("Got parameter param = %s, want %s", got, want)
+		}
+
+		if _, ok := tx.Parameter(keyKO); ok {
+			t.Errorf("Got unexpected value for parameter %v", keyKO)
+		}
+
+		return nil, nil
+	})
+
+	params := make(Params)
+	params[keyOK] = want
+
+	ctx := context.Background()
+	ctx = context.WithValue(ctx, TxData, params)
+
+	job := builder.Build().Execute(ctx)
+
+	// wait for the transaction to finish
+	<-job.Done()
+}
+
+func TestTransaction_exceptions(t *testing.T) {
+	keyOK := "ExceptionOK"
+	keyKO := "ExceptionKO"
+
+	want := "hello world"
+	builder := NewTransactionBuilder("testing", func(tx Tx) (interface{}, error) {
+		if err := tx.Exception(keyKO); err == nil {
+			t.Errorf("Got unexpected exception value for key %s", keyOK)
+		}
+
+		if err := tx.Exception(keyOK); err != nil {
+			t.Errorf("Got no exception value for key %s", keyKO)
+		}
+
+		return nil, nil
+	}).WithException(keyOK, fmt.Errorf(want))
+
+	ctx := context.Background()
+	job := builder.Build().Execute(ctx)
+
+	// wait for the transaction to finish
+	<-job.Done()
+	job.Get()
+
+	want = "hello world\ncontext canceled"
+	if _, got := job.Get(); got == nil || got.Error() != want {
+		t.Errorf("Got exception value %s, want %s", got, want)
 	}
 }
 

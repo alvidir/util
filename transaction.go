@@ -7,10 +7,11 @@ import (
 )
 
 const (
-	DataKey             = "data"
-	ErrUnknownException = "unknown exception"
+	TxData              Key    = "data"
+	ErrUnknownException string = "unknown exception"
 )
 
+type Key string
 type Params map[string]interface{}
 
 // A Promise represents some value that will be resolved in the future
@@ -70,6 +71,7 @@ func NewTransactionBuilder(name string, body func(Tx) (interface{}, error)) TxBu
 }
 
 type thread struct {
+	sync.Mutex
 	context.Context
 	*transaction
 
@@ -80,6 +82,9 @@ type thread struct {
 }
 
 func (thread *thread) error(err error) {
+	thread.Lock()
+	defer thread.Unlock()
+
 	if thread.err != nil && err != nil {
 		thread.err = fmt.Errorf("%s\n%s", thread.err.Error(), err.Error())
 	} else if err != nil {
@@ -88,6 +93,8 @@ func (thread *thread) error(err error) {
 }
 
 func (thread *thread) Get() (interface{}, error) {
+	thread.Lock()
+	defer thread.Unlock()
 	return thread.result, thread.err
 }
 
@@ -97,19 +104,20 @@ func (thread *thread) Exception(id string) error {
 		return fmt.Errorf(ErrUnknownException)
 	}
 
-	thread.err = v.(error)
+	thread.error(v.(error))
 	thread.cancel()
 	return nil
 }
 
 func (thread *thread) Parameter(key string) (v interface{}, ok bool) {
-	data := thread.Value(DataKey)
+	data := thread.Value(TxData)
 	if ok = data != nil; !ok {
 		return
 	}
 
 	var params Params
 	if params, ok = data.(Params); !ok {
+
 		return
 	}
 
@@ -178,8 +186,11 @@ func (tx *transaction) spawn(thread *thread) <-chan struct{} {
 	go func(done chan<- struct{}) {
 		defer close(done)
 
-		var err error
-		if thread.result, err = tx.postcondition(thread); err != nil {
+		if result, err := tx.postcondition(thread); err == nil {
+			thread.Lock()
+			defer thread.Unlock()
+			thread.result = result
+		} else {
 			thread.error(err)
 		}
 
@@ -216,6 +227,7 @@ func (tx *transaction) Execute(ctx context.Context) Promise {
 		Context:     ctx,
 		transaction: tx,
 		cancel:      cancel,
+		sandbox:     make(map[string]interface{}),
 	}
 
 	go tx.run(thread)
