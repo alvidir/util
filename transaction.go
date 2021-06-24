@@ -73,7 +73,7 @@ func NewTransactionBuilder(name string, body func(Tx) (interface{}, error)) TxBu
 type thread struct {
 	sync.Mutex
 	context.Context
-	*transaction
+	exceptions *sync.Map
 
 	cancel  context.CancelFunc
 	sandbox map[string]interface{}
@@ -224,10 +224,10 @@ func (tx *transaction) Execute(ctx context.Context) Promise {
 	ctx, cancel := context.WithCancel(ctx)
 
 	thread := &thread{
-		Context:     ctx,
-		transaction: tx,
-		cancel:      cancel,
-		sandbox:     make(map[string]interface{}),
+		Context:    ctx,
+		cancel:     cancel,
+		exceptions: &tx.exceptions,
+		sandbox:    make(map[string]interface{}),
 	}
 
 	go tx.run(thread)

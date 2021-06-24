@@ -124,7 +124,7 @@ func TestTransaction_exceptions(t *testing.T) {
 	<-job.Done()
 	job.Get()
 
-	want = "hello world\ncontext canceled"
+	want = "hello world"
 	if _, got := job.Get(); got == nil || got.Error() != want {
 		t.Errorf("Got exception value %s, want %s", got, want)
 	}
