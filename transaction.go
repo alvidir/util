@@ -71,7 +71,7 @@ func NewTransactionBuilder(name string, body func(Tx) (interface{}, error)) TxBu
 }
 
 type thread struct {
-	sync.Mutex
+	sync.RWMutex
 	context.Context
 	exceptions *sync.Map
 
@@ -92,9 +92,10 @@ func (thread *thread) error(err error) {
 	}
 }
 
-func (thread *thread) Get() (interface{}, error) {
-	thread.Lock()
-	defer thread.Unlock()
+func (thread *thread) Get() (result interface{}, err error) {
+	thread.RLock()
+	defer thread.RUnlock()
+
 	return thread.result, thread.err
 }
 
@@ -166,10 +167,6 @@ func (tx *transaction) doCommit(thread *thread) {
 
 func (tx *transaction) finalize(thread *thread) {
 	defer thread.cancel()
-
-	// if the context has been canceled it is required to catch the cause
-	err := thread.Err()
-	thread.error(err)
 
 	if panic := recover(); panic != nil {
 		thread.err = fmt.Errorf("%v", panic)
