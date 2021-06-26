@@ -2,6 +2,7 @@ package util
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sync"
 )
@@ -102,7 +103,7 @@ func (thread *thread) Get() (result interface{}, err error) {
 func (thread *thread) Exception(id string) error {
 	v, exists := thread.exceptions.Load(id)
 	if !exists {
-		return fmt.Errorf(ErrUnknownException)
+		return errors.New(ErrUnknownException)
 	}
 
 	thread.error(v.(error))
